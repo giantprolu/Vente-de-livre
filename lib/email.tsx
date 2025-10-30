@@ -57,9 +57,26 @@ export function generateOrderConfirmationEmail(order: any, paymentInstructions: 
             <h2>Détails de la commande</h2>
             <p><span class="label">Quantité :</span> ${order.quantity ?? order.book_quantity ?? ""} livre(s)</p>
             <p><span class="label">Adresse de livraison :</span><br>
-            ${order.address ?? order.shipping_address ?? ""}<br>
-            ${(order.postalCode ?? order.shipping_postal_code ?? "")} ${(order.city ?? order.shipping_city ?? "")}<br>
-            ${order.country ?? order.shipping_country ?? ""}</p>
+              ${
+                (() => {
+                  const addressLines = [
+                    order.shipping_address,
+                    order.shipping_postal_code,
+                    order.shipping_city,
+                    order.shipping_country
+                  ]
+                  .map(v => (v === null || v === undefined ? "" : String(v).trim()))
+                  .filter(line =>
+                    line.length > 0 &&
+                    line.toLowerCase() !== "null" &&
+                    line.toLowerCase() !== "undefined"
+                  );
+                  return addressLines.length > 0
+                    ? addressLines.map(line => `${line}<br>`).join("")
+                    : "<em>Non renseignée</em><br>";
+                })()
+              }
+            </p>
             ${(order.message ?? order.dedication_message) ? `<p><span class="label">Message/Dédicace :</span> ${order.message ?? order.dedication_message}</p>` : ""}
           </div>
           
@@ -70,7 +87,13 @@ export function generateOrderConfirmationEmail(order: any, paymentInstructions: 
           
           <div class="section">
             <h2>Suivi de commande</h2>
-            <p>Vous pouvez suivre l'état de votre commande à tout moment en utilisant votre numéro de commande et votre email sur notre page de suivi.</p>
+            <p>
+              Vous pouvez suivre l'état de votre commande à tout moment en cliquant sur ce lien sécurisé :<br>
+              <a href="${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/track/${order.tracking_token}">
+                Suivre ma commande
+              </a>
+            </p>
+            <p>Ou en enregistrant ce lien. Gardez-le précieusement, il donne accès à votre suivi.</p>
           </div>
           
           <div class="footer">

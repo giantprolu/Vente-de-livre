@@ -283,3 +283,9 @@ export async function getOrderQuantity(orderId: string): Promise<number> {
   if (error || !data) return 1
   return data.quantity || 1
 }
+
+export async function getOrderByTrackingToken(token: string) {
+  // Exemple avec Prisma :
+  // return prisma.order.findUnique({ where: { tracking_token: token } })
+  // À adapter selon ton ORM/DB
+}

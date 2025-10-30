@@ -1,146 +1,120 @@
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { BookOpen, Package, Shield, Truck } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
+const bookPrice = 19.9
+const accentColor = "#C6A47E"
+const author = "Blissody"
+
 export default function HomePage() {
-  const bookPrice = 25
-  const shippingCost = 5
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">Blissody</h1>
+    <div className="bg-white min-h-screen font-inter text-[#1A1A1A] flex flex-col">
+      {/* Hero */}
+      <section className="flex flex-col items-center justify-center px-4 pt-12 pb-10">
+        <div className="w-full max-w-md mx-auto mb-8 relative">
+          <Image
+            src="/book-cover.jpg"
+            alt="Couverture du livre"
+            width={400}
+            height={550}
+            className="rounded-lg w-full object-cover border border-[#ececec]"
+            priority
+          />
+          <div className="absolute left-2 top-2 bg-white/80 text-xs text-[#888] px-2 py-1 rounded font-mono tracking-tight shadow-sm">
+            Ils disent que ma vie est un film... 16
           </div>
-          <nav className="flex gap-4">
-            <Link href="/track">
-              <Button variant="ghost">Suivre ma commande</Button>
-            </Link>
-            <Link href="/order">
-              <Button>Commander</Button>
-            </Link>
-          </nav>
         </div>
-      </header>
+        <h1 className="text-3xl md:text-4xl font-serif font-bold text-center mb-2 tracking-tight">
+          ils disent que ma vie est un film...<br className="hidden md:block" />
+          <span className="font-normal">Moi, je n'avais pas choisi le réalisateur</span>
+        </h1>
+        <div className="text-lg text-[#555] font-medium mb-4 text-center">
+          par {author}
+        </div>
+        <p className="text-xl md:text-2xl text-center mb-6 max-w-2xl font-light">
+          « Un témoignage brut, poignant et porteur d’espoir. »
+        </p>
+        <Link href="/order">
+          <Button
+            size="lg"
+            className="px-8 py-3 rounded-full text-base font-semibold"
+            style={{
+              background: accentColor,
+              color: "#fff",
+              transition: "background 0.2s",
+            }}
+          >
+            Commander — {bookPrice.toFixed(2).replace('.', ',')} €
+          </Button>
+        </Link>
+      </section>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <h2 className="text-4xl md:text-5xl font-bold leading-tight text-balance">Découvrez Mon Nouveau Livre</h2>
-            <p className="text-xl text-muted-foreground text-pretty">
-              Un témoignage bouleversant et authentique, tiré d'une histoire vraie, qui aborde avec sensibilité des épreuves douloureuses. Disponible dès maintenant en édition limitée.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/order">
-                <Button size="lg" className="w-full sm:w-auto">
-                  Commander maintenant
-                </Button>
-              </Link>
-              <Link href="#details">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto bg-transparent">
-                  En savoir plus
-                </Button>
-              </Link>
-            </div>
+      {/* Résumé */}
+      <section className="max-w-2xl mx-auto px-4 py-8">
+        <h2 className="text-2xl font-serif font-semibold mb-4 text-[#2C3E50]">Résumé</h2>
+        <p className="text-lg leading-relaxed text-[#222]">
+          Ce livre raconte l'histoire d'une femme qui a cru construire une vie de famille, et qui a découvert l'envers du décor : manipulations, trahisons, procès, solitude. Entre ombre et lumière. Blissody partage un récit autobiographique qui ressemble à un film... sauf qu'elle n'avait pas choisi le réalisateur. Un témoignage brut, poignant et porteur d'espoir.
+        </p>
+      </section>
+
+      {/* Valeurs */}
+      <section className="max-w-3xl mx-auto px-4 py-8">
+        <h2 className="text-2xl font-serif font-semibold mb-6 text-[#2C3E50]">Pourquoi ce livre ?</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex flex-col items-center text-center gap-2">
+            <span className="text-3xl">🤍</span>
+            <div className="font-semibold">Authenticité</div>
+            <div className="text-[#666] text-sm">Un témoignage vrai, sans fard, écrit avec le cœur.</div>
+          </div>
+          <div className="flex flex-col items-center text-center gap-2">
+            <span className="text-3xl">📖</span>
+            <div className="font-semibold">Partage</div>
+            <div className="text-[#666] text-sm">Pour accompagner celles et ceux qui traversent l’épreuve.</div>
+          </div>
+          <div className="flex flex-col items-center text-center gap-2">
+            <span className="text-3xl">🌱</span>
+            <div className="font-semibold">Espoir</div>
+            <div className="text-[#666] text-sm">Un message de lumière et de reconstruction.</div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="bg-muted/50 py-16">
-        <div className="container mx-auto px-4">
-          <h3 className="text-3xl font-bold text-center mb-12">Pourquoi commander chez nous ?</h3>
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card>
-              <CardContent className="pt-6 text-center space-y-4">
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Truck className="h-6 w-6 text-primary" />
-                </div>
-                <h4 className="font-semibold text-lg">Livraison rapide</h4>
-                <p className="text-muted-foreground">Expédition sous 48h partout en France</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6 text-center space-y-4">
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Shield className="h-6 w-6 text-primary" />
-                </div>
-                <h4 className="font-semibold text-lg">Paiement sécurisé</h4>
-                <p className="text-muted-foreground">Plusieurs options de paiement disponibles</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6 text-center space-y-4">
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Package className="h-6 w-6 text-primary" />
-                </div>
-                <h4 className="font-semibold text-lg">Édition limitée</h4>
-                <p className="text-muted-foreground">Exemplaires dédicacés et signés</p>
-              </CardContent>
-            </Card>
+      {/* Avis lecteurs */}
+      <section className="max-w-3xl mx-auto px-4 py-8">
+        <h2 className="text-2xl font-serif font-semibold mb-6 text-[#2C3E50]">Ils en parlent</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-[#FAF8F6] rounded-lg p-5 border border-[#f0ece8]">
+            <div className="text-base leading-relaxed mb-2">« Un livre qui m’a profondément touchée. Merci pour ce partage si sincère. »</div>
+            <div className="text-xs text-[#888]">— Claire, 38 ans</div>
+          </div>
+          <div className="bg-[#FAF8F6] rounded-lg p-5 border border-[#f0ece8]">
+            <div className="text-base leading-relaxed mb-2">« Une lecture bouleversante, mais pleine d’espoir. À mettre entre toutes les mains. »</div>
+            <div className="text-xs text-[#888]">— Julien, 45 ans</div>
           </div>
         </div>
       </section>
 
-      {/* Book Details */}
-      <section id="details" className="container mx-auto px-4 py-16">
-        <div className="max-w-3xl mx-auto space-y-8">
-          <h3 className="text-3xl font-bold text-center">À propos du livre</h3>
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <p className="text-lg leading-relaxed">
-                Ce livre est un témoignage authentique et bouleversant, inspiré d'une histoire vraie et marquée par des épreuves douloureuses. Chaque page partage une expérience de vie sincère et profonde.
-              </p>
-              <div className="grid sm:grid-cols-2 gap-4 pt-4">
-                <div>
-                  <p className="font-semibold">Format</p>
-                  <p className="text-muted-foreground">Broché, 320 pages</p>
-                </div>
-                <div>
-                  <p className="font-semibold">Prix</p>
-                  <p className="text-muted-foreground">
-                    {bookPrice}€ + {shippingCost}€ de frais de port
-                  </p>
-                </div>
-                <div>
-                  <p className="font-semibold">Langue</p>
-                  <p className="text-muted-foreground">Français</p>
-                </div>
-                <div>
-                  <p className="font-semibold">Disponibilité</p>
-                  <p className="text-muted-foreground">En stock</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <div className="text-center">
-            <Link href="/order">
-              <Button size="lg">Commander maintenant - {bookPrice + shippingCost}€</Button>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Call to action */}
+      <div className="flex justify-center py-8">
+        <Link href="/order">
+          <Button
+            size="lg"
+            className="px-8 py-3 rounded-full text-base font-semibold"
+            style={{
+              background: accentColor,
+              color: "#fff",
+              transition: "background 0.2s",
+            }}
+          >
+            Commander — {bookPrice.toFixed(2).replace('.', ',')} €
+          </Button>
+        </Link>
+      </div>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/50 mt-16">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-muted-foreground">© 2025 Mon Livre. Tous droits réservés.</p>
-            <div className="flex gap-6">
-              <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground">
-                Politique de confidentialité
-              </Link>
-              <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">
-                Conditions générales
-              </Link>
-            </div>
-          </div>
+      <footer className="w-full border-t border-[#f0ece8] py-6 mt-auto">
+        <div className="text-center text-xs text-[#888]">
+          Vente réalisée par un particulier — envoi après réception du paiement.
         </div>
       </footer>
     </div>

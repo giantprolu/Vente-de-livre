@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
@@ -30,6 +29,18 @@ export default function OrderPageClient() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+
+    // Ajout du mapping camelCase -> snake_case pour l'API/back/email
+    const address = formData.get("address") as string;
+    const city = formData.get("city") as string;
+    const postalCode = formData.get("postalCode") as string;
+    const country = formData.get("country") as string;
+
+    formData.set("shipping_address", address);
+    formData.set("shipping_city", city);
+    formData.set("shipping_postal_code", postalCode);
+    formData.set("shipping_country", country);
+
     const result = await submitOrder(formData);
 
     setIsSubmitting(false);
@@ -37,10 +48,10 @@ export default function OrderPageClient() {
     if (result.success) {
       setSuccess(true);
       setOrderDetails(result.order);
-      // Redirect to payment instructions after 2 seconds
+      // Redirection corrigée vers le lien sécurisé
       setTimeout(() => {
         if (result.order) {
-          router.push(`/payment?order=${result.order.orderNumber}&email=${result.order.email}`);
+          router.push(`/payment/${result.order.trackingToken}`);
         }
       }, 2000);
     } else {
@@ -158,38 +169,24 @@ export default function OrderPageClient() {
                   {/* Payment Method */}
                   <div className="space-y-4">
                     <h3 className="font-semibold text-lg">Méthode de paiement *</h3>
-                    <RadioGroup name="paymentMethod" defaultValue="bank_transfer" required>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="bank_transfer" id="bank_transfer" />
-                        <Label htmlFor="bank_transfer" className="cursor-pointer">
-                          Virement bancaire (IBAN)
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="paylib" id="paylib" />
-                        <Label htmlFor="paylib" className="cursor-pointer">
-                          Paylib
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="lydia" id="lydia" />
-                        <Label htmlFor="lydia" className="cursor-pointer">
-                          Lydia
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="revolut" id="revolut" />
-                        <Label htmlFor="revolut" className="cursor-pointer">
-                          Revolut
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="paypal" id="paypal" />
-                        <Label htmlFor="paypal" className="cursor-pointer">
-                          PayPal (frais de 3% appliqués)
-                        </Label>
-                      </div>
-                    </RadioGroup>
+                    <div className="space-y-2">
+                      <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700">
+                        Choisissez une méthode
+                      </label>
+                      <select
+                        id="paymentMethod"
+                        name="paymentMethod"
+                        required
+                        className="block w-full rounded-md border border-gray-300 bg-white py-2 px-3 text-base focus:outline-none focus:ring-2 focus:ring-[#C6A47E] focus:border-[#C6A47E] sm:text-sm"
+                        defaultValue="bank_transfer"
+                      >
+                        <option value="bank_transfer">Virement bancaire (IBAN)</option>
+                        <option value="paylib">Paylib</option>
+                        <option value="lydia">Lydia</option>
+                        <option value="revolut">Revolut</option>
+                        <option value="paypal">PayPal (frais de 3% appliqués)</option>
+                      </select>
+                    </div>
                   </div>
 
                   {/* Message */}

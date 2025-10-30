@@ -5,6 +5,7 @@ import { sendEmail, generateOrderConfirmationEmail } from "@/lib/email"
 import { getPaymentInstructions } from "@/lib/payment-instructions"
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
+import { randomUUID } from "crypto"
 
 export async function submitOrder(formData: FormData) {
   try {
@@ -22,8 +23,6 @@ export async function submitOrder(formData: FormData) {
       payment_method: formData.get("paymentMethod") as any,
     }
 
-    console.log("[submitOrder] orderData:", orderData)
-
     // Validate required fields
     if (
       !orderData.first_name ||
@@ -36,21 +35,23 @@ export async function submitOrder(formData: FormData) {
       !orderData.quantity ||
       !orderData.payment_method
     ) {
-      console.log("[submitOrder] Champs manquants", orderData)
       return { success: false, error: "Tous les champs obligatoires doivent être remplis." }
     }
 
+    // Génère un token unique pour le suivi
+    const tracking_token = randomUUID()
+    // Ajoute le token à l'objet orderData (et à la BDD)
+    ;(orderData as any).tracking_token = tracking_token
+
     // Create order
     const order = await createOrder(orderData)
-    console.log("[submitOrder] order créé:", order)
 
     if (!order) {
       return { success: false, error: "Erreur lors de la création de la commande." }
     }
 
     // Get payment instructions
-    const paymentInstructions = getPaymentInstructions(order.payment_method, order.order_number)
-    console.log("[submitOrder] paymentInstructions:", paymentInstructions)
+    const paymentInstructions = getPaymentInstructions(orderData.payment_method, order.order_number)
 
     const emailHtml = generateOrderConfirmationEmail(
       {
@@ -60,24 +61,30 @@ export async function submitOrder(formData: FormData) {
         email: order.customer_email,
         quantity: orderData.quantity,
         paymentMethod: order.payment_method,
+        // Ajout du lien de suivi sécurisé :
+        tracking_token: tracking_token,
+        // Ajout des champs d'adresse pour l'email :
+        shipping_address: order.shipping_address,
+        shipping_postal_code: order.shipping_postal_code,
+        shipping_city: order.shipping_city,
+        shipping_country: order.shipping_country,
       },
       paymentInstructions,
     )
-    console.log("[submitOrder] emailHtml:", emailHtml)
 
     const emailResult = await sendEmail({
       to: order.customer_email,
       subject: `Confirmation de commande ${order.order_number}`,
       html: emailHtml,
     })
-    console.log("[submitOrder] sendEmail result:", emailResult)
 
     return {
       success: true,
       order: {
-        orderNumber: order.order_number,
-        email: order.customer_email,
+        trackingToken: tracking_token,
         paymentMethod: order.payment_method,
+        orderNumber: order.order_number, // Ajouté pour l'affichage
+        email: order.customer_email,     // Ajouté pour l'affichage
       },
     }
   } catch (error) {
@@ -88,9 +95,7 @@ export async function submitOrder(formData: FormData) {
 
 export async function trackOrder(orderNumber: string, email: string) {
   try {
-    console.log("[trackOrder] Recherche orderNumber:", orderNumber, "email:", email)
     const order = await getOrderByNumberAndEmail(orderNumber, email)
-    console.log("[trackOrder] Résultat:", order)
 
     if (!order) {
       return { success: false, error: "Commande introuvable. Vérifiez le numéro de commande et l'email." }
@@ -104,7 +109,6 @@ export async function trackOrder(orderNumber: string, email: string) {
 }
 
 export async function adminLogin(password: string) {
-  console.log("[adminLogin] Tentative de login avec password:", password)
   const adminPassword = process.env.ADMIN_PASSWORD || "admin123"
 
   if (password === adminPassword) {
@@ -115,16 +119,13 @@ export async function adminLogin(password: string) {
       sameSite: "lax",
       maxAge: 60 * 60 * 24, // 24 hours
     })
-    console.log("[adminLogin] Authentification réussie")
     return { success: true }
   }
 
-  console.log("[adminLogin] Mot de passe incorrect")
   return { success: false, error: "Mot de passe incorrect." }
 }
 
 export async function adminLogout() {
-  console.log("[adminLogout] Déconnexion admin")
   const cookieStore = await cookies()
   cookieStore.delete("admin_authenticated")
   revalidatePath("/admin")
@@ -133,7 +134,6 @@ export async function adminLogout() {
 export async function getAllOrders() {
   try {
     const orders = await getOrders()
-    console.log("[getAllOrders] Nb commandes:", orders.length)
     return { success: true, orders }
   } catch (error) {
     console.error("Error getting orders:", error)
@@ -149,7 +149,6 @@ export async function updateOrderStatus(
   customMessage?: string,
 ) {
   try {
-    console.log("[updateOrderStatus] orderNumber:", orderNumber, "status:", status, "trackingNumber:", trackingNumber, "trackingCarrier:", trackingCarrier, "customMessage:", customMessage)
     const validStatuses = [
       "pending_payment",
       "payment_received",
@@ -174,9 +173,7 @@ export async function updateOrderStatus(
     if (trackingCarrier) updates.carrier = trackingCarrier
     if (customMessage) updates.admin_notes = customMessage
 
-    console.log("[updateOrderStatus] updates envoyés à updateOrder:", updates)
     const order = await updateOrder(orderNumber, updates)
-    console.log("[updateOrderStatus] Résultat updateOrder:", order)
 
     if (!order) {
       return { success: false, error: "Commande introuvable." }
@@ -189,5 +186,24 @@ export async function updateOrderStatus(
   } catch (error) {
     console.error("Error updating order:", error)
     return { success: false, error: "Erreur lors de la mise à jour de la commande." }
+  }
+}
+
+// Ajoute une nouvelle fonction pour récupérer la commande par token
+export async function getOrderByTrackingToken(token: string) {
+  try {
+    // Utilise la fonction de la DB sans collision de nom
+    const db = await import("@/lib/db")
+    // Correction : vérifie que la fonction existe et retourne bien une promesse
+    if (typeof db.getOrderByTrackingToken !== "function") {
+      return { success: false, error: "Fonction getOrderByTrackingToken non trouvée dans la DB." }
+    }
+    const orderResult = await db.getOrderByTrackingToken(token)
+    if (orderResult == null) {
+      return { success: false, error: "Commande introuvable." }
+    }
+    return { success: true, order: orderResult }
+  } catch (error) {
+    return { success: false, error: "Erreur lors de la recherche de la commande." }
   }
 }
