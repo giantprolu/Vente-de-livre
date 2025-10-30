@@ -63,7 +63,7 @@ function getTrackingUrl(carrier: string | undefined, trackingNumber: string | un
     case "chronopost":
       return `https://www.chronopost.fr/fr/suivi-colis?listeNumerosLT=${num}`
     case "dpd":
-      return `https://www.dpd.fr/trace/${num}`
+      return `https://www.dpd.fr/trace/`
     case "ups":
       return `https://www.ups.com/track?loc=fr_FR&tracknum=${num}`
     case "fedex":
