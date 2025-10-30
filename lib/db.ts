@@ -16,7 +16,6 @@ export interface Order {
   order_number: string
   customer_name: string
   customer_email: string
-  customer_phone?: string
   shipping_address: string
   shipping_city: string
   shipping_postal_code: string
@@ -115,7 +114,6 @@ export async function createOrder(orderData: OrderCreateData): Promise<Order | n
     order_number: orderNumber,
     customer_name: `${orderData.first_name} ${orderData.last_name}`,
     customer_email: orderData.email,
-    customer_phone: orderData.phone,
     shipping_address: orderData.address,
     shipping_city: orderData.city,
     shipping_postal_code: orderData.postal_code,
