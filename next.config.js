@@ -1,15 +1,12 @@
 /** @type {import('next').NextConfig} */
+
 const nextConfig = {
-  output: "export", // Active le mode static export (SSG)
-  // Optionnel : désactive les headers dynamiques
-  headers: async () => [],
-  // Optionnel : désactive les revalidations ISR
-  revalidate: false,
-  // Optionnel : désactive les cookies/headers dynamiques
+  // Mode serveur par défaut (aucun output: 'export')
   experimental: {
-    serverActions: false,
-    serverComponentsExternalPackages: [],
+    // Vous pouvez activer serverActions si besoin
+    serverActions: true,
+    // Supprimez serverComponentsExternalPackages si non utilisé
   },
-}
+};
 
 module.exports = nextConfig

@@ -47,26 +47,36 @@ export interface OrderCreateData {
 
 // Create Supabase client for server-side operations
 function createClient() {
-  const { cookies } = getCookiesModule()
-  const cookieStore = cookies()
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    cookies: {
-      async getAll() {
-        const { cookies } = getCookiesModule()
-        const store = await cookies()
-        return store.getAll()
+  const mod = getCookiesModule();
+  if (!mod || typeof mod.cookies !== 'function') {
+    throw new Error("Le module cookies n'est pas disponible");
+  }
+  const { cookies } = mod;
+  const cookieStore = cookies();
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          const mod = getCookiesModule();
+          if (!mod || typeof mod.cookies !== 'function') return [];
+          const store = await mod.cookies();
+          return store.getAll();
+        },
+        async setAll(cookiesToSet) {
+          const mod = getCookiesModule();
+          if (!mod || typeof mod.cookies !== 'function') return;
+          const store = await mod.cookies();
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => store.set(name, value, options));
+          } catch {
+            // ignore
+          }
+        },
       },
-      async setAll(cookiesToSet) {
-        const { cookies } = getCookiesModule()
-        const store = await cookies()
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => store.set(name, value, options))
-        } catch {
-          // ignore
-        }
-      },
-    },
-  })
+    }
+  );
 }
 
 // Get all orders
@@ -188,10 +198,10 @@ export async function updateOrder(orderNumber: string, updates: Partial<Order>):
   // Correction : updated_at doit être casté explicitement en type string (hors Partial<Order>)
   const updatePayload: Partial<Order> = {}
   Object.keys(updates).forEach((key) => {
-    const typedKey = key as keyof Order
-    const value = updates[typedKey]
+    const typedKey = key as keyof Order;
+    const value = updates[typedKey];
     if (value !== undefined) {
-      updatePayload[typedKey] = value
+      (updatePayload as any)[typedKey] = value;
     }
   });
   // Ajoute updated_at hors du typage strict de Partial<Order>
@@ -230,32 +240,36 @@ export async function updateOrder(orderNumber: string, updates: Partial<Order>):
 
 // Get cookies
 export async function getCookies() {
-  const { cookies } = getCookiesModule()
-  const cookieStore = await cookies()
-  const allCookies: Record<string, string> = {}
+  const mod = getCookiesModule();
+  if (!mod || typeof mod.cookies !== 'function') return {};
+  const cookieStore = await mod.cookies();
+  const allCookies: Record<string, string> = {};
   for (const cookie of cookieStore.getAll()) {
-    allCookies[cookie.name] = cookie.value
+    allCookies[cookie.name] = cookie.value;
   }
-  return allCookies
+  return allCookies;
 }
 
 export async function getCookie(name: string) {
-  const { cookies } = getCookiesModule()
-  const cookieStore = await cookies()
-  const cookie = cookieStore.get(name)
-  return cookie?.value
+  const mod = getCookiesModule();
+  if (!mod || typeof mod.cookies !== 'function') return undefined;
+  const cookieStore = await mod.cookies();
+  const cookie = cookieStore.get(name);
+  return cookie?.value;
 }
 
 export async function isAdminAuthenticated() {
-  const { cookies } = getCookiesModule()
-  const cookieStore = await cookies()
-  return cookieStore.get("admin_authenticated")?.value === "true"
+  const mod = getCookiesModule();
+  if (!mod || typeof mod.cookies !== 'function') return false;
+  const cookieStore = await mod.cookies();
+  return cookieStore.get("admin_authenticated")?.value === "true";
 }
 
 export async function getAllCookies() {
-  const { cookies } = getCookiesModule()
-  const cookieStore = await cookies()
-  return cookieStore.getAll()
+  const mod = getCookiesModule();
+  if (!mod || typeof mod.cookies !== 'function') return [];
+  const cookieStore = await mod.cookies();
+  return cookieStore.getAll();
 }
 
 // Supprime toute utilisation directe de cookieStore.getAll() sans await cookies()
