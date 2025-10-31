@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-// Correction : autorise explicitement Vercel (production) et localhost (dev)
-export const runtime = "edge";
+// Utilise runtime 'nodejs' pour accéder aux variables d'environnement sur Vercel
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   // // Vérifie l'origine si besoin (optionnel, pour plus de sécurité)
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   // }
 
   const resendApiKey = process.env.RESEND_API_KEY;
-  console.log("RESEND_API_KEY:", resendApiKey); // Ajoute ce log
+  console.log("RESEND_API_KEY:", resendApiKey); // Ce log sera visible dans les logs Vercel avec runtime nodejs
   if (!resendApiKey) {
     return NextResponse.json({ ok: false, error: "RESEND_API_KEY missing" }, { status: 500 });
   }
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   const { to, subject, html } = await request.json();
   try {
     const data = await resend.emails.send({
-      from: `Nathan Chavaudra <onboarding@resend.dev>`, // ou une adresse validée sur Resend
+      from: `Nathan Chavaudra <onboarding@resend.dev>`,
       to,
       subject,
       html,
