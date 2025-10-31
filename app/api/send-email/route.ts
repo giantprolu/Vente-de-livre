@@ -6,17 +6,18 @@ export const runtime = "edge";
 
 export async function POST(request: Request) {
   // Vérifie l'origine si besoin (optionnel, pour plus de sécurité)
-  // const allowedOrigins = [
-  //   "https://ton-domaine.vercel.app",
-  //   "https://ton-domaine.fr",
-  //   "http://localhost:3000"
-  // ];
-  // const origin = request.headers.get("origin");
-  // if (origin && !allowedOrigins.includes(origin)) {
-  //   return NextResponse.json({ ok: false, error: "Unauthorized origin" }, { status: 401 });
-  // }
+  const allowedOrigins = [
+    "https://vente-de-livre.vercel.app",
+    "https://ton-domaine.fr",
+    "http://localhost:3000"
+  ];
+  const origin = request.headers.get("origin");
+  if (origin && !allowedOrigins.includes(origin)) {
+    return NextResponse.json({ ok: false, error: "Unauthorized origin" }, { status: 401 });
+  }
 
   const resendApiKey = process.env.RESEND_API_KEY;
+  console.log("RESEND_API_KEY:", resendApiKey); // Ajoute ce log
   if (!resendApiKey) {
     return NextResponse.json({ ok: false, error: "RESEND_API_KEY missing" }, { status: 500 });
   }
