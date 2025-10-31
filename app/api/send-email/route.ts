@@ -5,16 +5,16 @@ import { Resend } from "resend";
 export const runtime = "edge";
 
 export async function POST(request: Request) {
-  // Vérifie l'origine si besoin (optionnel, pour plus de sécurité)
-  const allowedOrigins = [
-    "https://vente-de-livre.vercel.app",
-    "https://ton-domaine.fr",
-    "http://localhost:3000"
-  ];
-  const origin = request.headers.get("origin");
-  if (origin && !allowedOrigins.includes(origin)) {
-    return NextResponse.json({ ok: false, error: "Unauthorized origin" }, { status: 401 });
-  }
+  // // Vérifie l'origine si besoin (optionnel, pour plus de sécurité)
+  // const allowedOrigins = [
+  //   "https://vente-de-livre.vercel.app",
+  //   "https://ton-domaine.fr",
+  //   "http://localhost:3000"
+  // ];
+  // const origin = request.headers.get("origin");
+  // if (origin && !allowedOrigins.includes(origin)) {
+  //   return NextResponse.json({ ok: false, error: "Unauthorized origin" }, { status: 401 });
+  // }
 
   const resendApiKey = process.env.RESEND_API_KEY;
   console.log("RESEND_API_KEY:", resendApiKey); // Ajoute ce log
@@ -32,9 +32,8 @@ export async function POST(request: Request) {
       html,
     });
     return NextResponse.json({ ok: true, data });
-  } catch (error) {
-    console.error("Erreur envoi email:", error);
-    // Ajoute le message d'erreur Resend si possible
-    return NextResponse.json({ ok: false, error: String(error) }, { status: 401 });
+  } catch (error: any) {
+    console.error("Erreur envoi email:", error, error?.message, error?.response?.data);
+    return NextResponse.json({ ok: false, error: String(error?.message || error) }, { status: 401 });
   }
 }
