@@ -101,7 +101,7 @@ export async function generateOrderNumber(): Promise<string> {
   return `CMD${year}-${String(orderCount).padStart(5, "0")}`
 }
 
-export async function createOrder(orderData: OrderCreateData): Promise<Order | null> {
+export async function createOrder(orderData: OrderCreateData & { tracking_token?: string }): Promise<Order | null> {
   const supabase = createClient()
   const orderNumber = await generateOrderNumber()
 
@@ -122,6 +122,7 @@ export async function createOrder(orderData: OrderCreateData): Promise<Order | n
     admin_notes: orderData.message,
     total_amount: totalAmount,
     status: "pending_payment" as const,
+    tracking_token: orderData.tracking_token, // <-- AJOUT ICI
   }
 
   const { data, error } = await supabase.from("orders").insert(newOrder).select().single()
@@ -284,8 +285,18 @@ export async function getOrderQuantity(orderId: string): Promise<number> {
   return data.quantity || 1
 }
 
-export async function getOrderByTrackingToken(token: string) {
-  // Exemple avec Prisma :
-  // return prisma.order.findUnique({ where: { tracking_token: token } })
-  // À adapter selon ton ORM/DB
+export async function getOrderByTrackingToken(token: string): Promise<Order | null> {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("tracking_token", token)
+    .maybeSingle()
+
+  if (error) {
+    console.error("Error fetching order by tracking_token:", error)
+    return null
+  }
+
+  return data
 }

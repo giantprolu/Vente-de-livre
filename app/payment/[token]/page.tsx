@@ -21,12 +21,24 @@ type GetOrderByTrackingTokenResult =
   | { success: true; order: any }
   | { success: false; error: string }
 
-export default async function PaymentPage({ params }: { params: { token: string } }) {
-  const token = params.token
+export default async function PaymentPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params
   if (!token) return notFound()
   const rawResult = await getOrderByTrackingToken(token)
-  // Vérifie explicitement le succès et cast le type pour TypeScript
-  if (!rawResult || rawResult.success !== true || !("order" in rawResult)) return notFound()
+  console.log("DEBUG getOrderByTrackingToken:", JSON.stringify(rawResult, null, 2))
+
+  // Affiche une erreur explicite si la commande n'est pas trouvée
+  if (!rawResult || rawResult.success !== true || !("order" in rawResult)) {
+    return (
+      <main className="max-w-xl mx-auto p-6">
+        <div className="bg-red-50 border border-red-200 text-red-900 rounded p-4 mb-6">
+          <div className="font-semibold">Commande introuvable</div>
+          <div className="text-sm">Le lien de paiement est invalide ou la commande n'existe pas.</div>
+        </div>
+        <a href="/" className="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700">Retour à l'accueil</a>
+      </main>
+    )
+  }
   const order = (rawResult as { success: true; order: any }).order
 
   return (

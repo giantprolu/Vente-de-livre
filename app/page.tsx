@@ -13,7 +13,7 @@ export default function HomePage() {
       <section className="flex flex-col items-center justify-center px-4 pt-12 pb-10">
         <div className="w-full max-w-md mx-auto mb-8 relative">
           <Image
-            src="/book-cover.jpg"
+            src="/book-cover-with-elegant-design.jpg"
             alt="Couverture du livre"
             width={400}
             height={550}
@@ -25,7 +25,7 @@ export default function HomePage() {
           </div>
         </div>
         <h1 className="text-3xl md:text-4xl font-serif font-bold text-center mb-2 tracking-tight">
-          ils disent que ma vie est un film...<br className="hidden md:block" />
+          Ils disent que ma vie est un film...<br className="hidden md:block" />
           <span className="font-normal">Moi, je n'avais pas choisi le réalisateur</span>
         </h1>
         <div className="text-lg text-[#555] font-medium mb-4 text-center">
@@ -61,20 +61,44 @@ export default function HomePage() {
       <section className="max-w-3xl mx-auto px-4 py-8">
         <h2 className="text-2xl font-serif font-semibold mb-6 text-[#2C3E50]">Pourquoi ce livre ?</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="flex flex-col items-center text-center gap-2">
-            <span className="text-3xl">🤍</span>
-            <div className="font-semibold">Authenticité</div>
-            <div className="text-[#666] text-sm">Un témoignage vrai, sans fard, écrit avec le cœur.</div>
+          <div className="flex flex-row items-center text-left gap-4">
+            <Image
+              src="/coeur.jpg"
+              alt="Authenticité"
+              width={64}
+              height={64}
+              className="mb-0"
+            />
+            <div>
+              <div className="font-semibold">Authenticité</div>
+              <div className="text-[#666] text-sm">Un témoignage vrai, sans fard, écrit avec le cœur.</div>
+            </div>
           </div>
-          <div className="flex flex-col items-center text-center gap-2">
-            <span className="text-3xl">📖</span>
-            <div className="font-semibold">Partage</div>
-            <div className="text-[#666] text-sm">Pour accompagner celles et ceux qui traversent l’épreuve.</div>
+          <div className="flex flex-row items-center text-left gap-4">
+            <Image
+              src="/partage.jpg"
+              alt="Partage"
+              width={64}
+              height={64}
+              className="mb-0"
+            />
+            <div>
+              <div className="font-semibold">Partage</div>
+              <div className="text-[#666] text-sm">Pour accompagner celles et ceux qui traversent l’épreuve.</div>
+            </div>
           </div>
-          <div className="flex flex-col items-center text-center gap-2">
-            <span className="text-3xl">🌱</span>
-            <div className="font-semibold">Espoir</div>
-            <div className="text-[#666] text-sm">Un message de lumière et de reconstruction.</div>
+          <div className="flex flex-row items-center text-left gap-4">
+            <Image
+              src="/espoir.jpg"
+              alt="Espoir"
+              width={64}
+              height={64}
+              className="mb-0"
+            />
+            <div>
+              <div className="font-semibold">Espoir</div>
+              <div className="text-[#666] text-sm">Un message de lumière et de reconstruction.</div>
+            </div>
           </div>
         </div>
       </section>

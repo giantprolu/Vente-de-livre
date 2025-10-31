@@ -89,7 +89,7 @@ export function generateOrderConfirmationEmail(order: any, paymentInstructions: 
             <h2>Suivi de commande</h2>
             <p>
               Vous pouvez suivre l'état de votre commande à tout moment en cliquant sur ce lien sécurisé :<br>
-              <a href="${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/track/${order.tracking_token}">
+              <a href="${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/payment/${order.tracking_token}">
                 Suivre ma commande
               </a>
             </p>
