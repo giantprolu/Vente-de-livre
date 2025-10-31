@@ -1,6 +1,8 @@
 "use server"
 
 import { createOrder, getOrderByNumberAndEmail, updateOrder, getOrders, type OrderCreateData } from "@/lib/db"
+// Ajoute cet import :
+import { getOrderQuantity } from "@/lib/db"
 import { sendEmail, generateOrderConfirmationEmail } from "@/lib/email"
 import { getPaymentInstructions } from "@/lib/payment-instructions"
 import { revalidatePath } from "next/cache"
@@ -101,7 +103,10 @@ export async function trackOrder(orderNumber: string, email: string) {
       return { success: false, error: "Commande introuvable. Vérifiez le numéro de commande et l'email." }
     }
 
-    return { success: true, order }
+    // Ajout : récupère la quantité via order.id
+    const quantity = order.id ? await getOrderQuantity(order.id) : 1
+
+    return { success: true, order, quantity }
   } catch (error) {
     console.error("Error tracking order:", error)
     return { success: false, error: "Une erreur est survenue lors de la recherche de la commande." }

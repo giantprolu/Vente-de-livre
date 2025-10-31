@@ -8,19 +8,79 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, AlertCircle } from "lucide-react"
+import { Loader2, AlertCircle, Package, Truck, CheckCircle2, Clock } from "lucide-react"
 import Link from "next/link"
 
-const statusLabels: Record<string, string> = {
-  pending_payment: "En attente de paiement",
-  payment_received: "Paiement reçu",
-  preparing: "Commande en préparation",
-  shipped: "Colis envoyé",
-  delivered: "Colis livré / reçu",
+// Ajout des configs pour timeline et labels
+const statusConfig = {
+  pending_payment: {
+    label: "En attente de paiement",
+    icon: Clock,
+    color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  },
+  payment_received: {
+    label: "Paiement reçu",
+    icon: CheckCircle2,
+    color: "bg-green-100 text-green-800 border-green-200",
+  },
+  preparing: {
+    label: "Commande en préparation",
+    icon: Package,
+    color: "bg-blue-100 text-blue-800 border-blue-200",
+  },
+  shipped: {
+    label: "Colis envoyé",
+    icon: Truck,
+    color: "bg-purple-100 text-purple-800 border-purple-200",
+  },
+  delivered: {
+    label: "Colis livré / reçu",
+    icon: CheckCircle2,
+    color: "bg-green-100 text-green-800 border-green-200",
+  },
+}
+
+const paymentMethodLabels: Record<string, string> = {
+  bank_transfer: "Virement bancaire",
+  virement: "Virement bancaire",
+  paylib: "Paylib",
+  lydia: "Lydia",
+  lidya: "Lydia",
+  revolut: "Revolut",
+  paypal: "PayPal",
+  autre: "Autre",
+}
+
+// Fonction utilitaire pour générer le lien de suivi selon le transporteur
+function getTrackingUrl(carrier: string | undefined, trackingNumber: string | undefined): string | null {
+  if (!carrier || !trackingNumber) return null
+  const num = encodeURIComponent(trackingNumber.trim())
+  switch (carrier.toLowerCase()) {
+    case "colissimo":
+      return `https://www.laposte.fr/outils/suivre-vos-envois?code=${num}`
+    case "chronopost":
+      return `https://www.chronopost.fr/fr/suivi-colis?listeNumerosLT=${num}`
+    case "dpd":
+      return `https://www.dpd.fr/trace/`
+    case "ups":
+      return `https://www.ups.com/track?loc=fr_FR&tracknum=${num}`
+    case "fedex":
+      return `https://www.fedex.com/fedextrack/?trknbr=${num}`
+    case "la_poste":
+      return `https://www.laposte.fr/outils/suivre-vos-envois?code=${num}`
+    default:
+      return null
+  }
 }
 
 export default function TrackPage() {
-  // Ajout : lecture des query params pour pré-remplir
+  const [orderNumber, setOrderNumber] = useState("")
+  const [email, setEmail] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [order, setOrder] = useState<any>(null)
+
+  // Pré-remplissage depuis l'URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const orderParam = params.get("order") || ""
@@ -29,21 +89,16 @@ export default function TrackPage() {
     setEmail(emailParam)
   }, [])
 
-  const [orderNumber, setOrderNumber] = useState("")
-  const [email, setEmail] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [order, setOrder] = useState<any>(null)
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
     setOrder(null)
+    // Récupère aussi la quantité depuis la réponse
     const result = await trackOrder(orderNumber, email)
     setLoading(false)
     if (result.success) {
-      setOrder(result.order)
+      setOrder({ ...result.order, _quantity: result.quantity })
     } else {
       setError(result.error || "Commande introuvable.")
     }
@@ -101,38 +156,138 @@ export default function TrackPage() {
         {order && (
           <Card className="mt-8">
             <CardHeader>
-              <CardTitle>Commande {order.order_number}</CardTitle>
-              <CardDescription>
-                Statut :{" "}
-                <Badge>
-                  {statusLabels[order.status] || order.status}
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Commande {order.order_number}</CardTitle>
+                  <CardDescription>
+                    Commandée le {new Date(order.created_at).toLocaleDateString("fr-FR")}
+                  </CardDescription>
+                </div>
+                <Badge
+                  className={
+                    statusConfig[order.status as keyof typeof statusConfig]?.color ||
+                    "bg-gray-200 text-gray-800 border-gray-300"
+                  }
+                  variant="outline"
+                >
+                  {/* Illustration principale du statut actif */}
+                  {(() => {
+                    const Icon = statusConfig[order.status as keyof typeof statusConfig]?.icon
+                    return Icon ? <Icon className="h-6 w-6" /> : null
+                  })()}
                 </Badge>
-              </CardDescription>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div>
-                  <span className="font-semibold">Nom :</span> {order.customer_name}
+            <CardContent className="space-y-6">
+              {/* Statut de la commande sous forme d'illustrations pleine largeur + label */}
+              <div className="space-y-4">
+                <h3 className="font-semibold">Statut de la commande</h3>
+                <div className="flex w-full gap-2 justify-between">
+                  {Object.entries(statusConfig).map(([key, config]) => {
+                    const isActive = key === order.status
+                    const isPast =
+                      Object.keys(statusConfig).indexOf(key) < Object.keys(statusConfig).indexOf(order.status)
+                    return (
+                      <div key={key} className="flex flex-col items-center flex-1 min-w-0">
+                        <Badge
+                          className={`
+                            flex items-center justify-center px-0 py-0 w-14 h-14
+                            ${isActive
+                              ? "border-2 border-black bg-white"
+                              : isPast
+                              ? "bg-green-500 text-white"
+                              : "bg-gray-200 text-gray-400"}
+                          `}
+                          variant="outline"
+                        >
+                          <config.icon className="h-7 w-7" />
+                        </Badge>
+                        <span
+                          className={`
+                            mt-2 text-xs text-center leading-tight
+                            ${isActive
+                              ? "font-bold text-black"
+                              : isPast
+                              ? "text-green-700"
+                              : "text-gray-400"}
+                          `}
+                          style={{
+                            maxWidth: 80,
+                            minHeight: 32,
+                            wordBreak: "break-word",
+                            display: "block",
+                          }}
+                          title={config.label}
+                        >
+                          {config.label}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
-                <div>
-                  <span className="font-semibold">Email :</span> {order.customer_email}
-                </div>
-                <div>
-                  <span className="font-semibold">Adresse :</span> {order.shipping_address}, {order.shipping_postal_code} {order.shipping_city}, {order.shipping_country}
-                </div>
-                <div>
-                  <span className="font-semibold">Montant total :</span> {order.total_amount} €
-                </div>
-                {order.tracking_number && (
-                  <div>
-                    <span className="font-semibold">Numéro de suivi :</span> {order.tracking_number}
+              </div>
+
+              {/* Tracking Information */}
+              {order.tracking_number && (
+                <div className="space-y-2 border-t pt-4">
+                  <h3 className="font-semibold">Informations de suivi</h3>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Transporteur</p>
+                    <p className="font-medium">{order.carrier || "Non spécifié"}</p>
                   </div>
-                )}
-                {order.admin_notes && (
-                  <Alert className="mt-2">
-                    <AlertDescription>{order.admin_notes}</AlertDescription>
-                  </Alert>
-                )}
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Numéro de suivi</p>
+                    <p className="font-mono text-sm">{order.tracking_number}</p>
+                    {/* Ajout du lien de suivi */}
+                    {getTrackingUrl(order.carrier, order.tracking_number) && (
+                      <a
+                        href={getTrackingUrl(order.carrier, order.tracking_number) as string}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block mt-1 text-sm text-blue-600 underline hover:text-blue-800"
+                      >
+                        Suivre le colis sur le site du transporteur
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Message */}
+              {order.admin_notes && (
+                <Alert>
+                  <AlertDescription>{order.admin_notes}</AlertDescription>
+                </Alert>
+              )}
+
+              {/* Order Details */}
+              <div className="space-y-2 border-t pt-4">
+                <h3 className="font-semibold">Détails de la commande</h3>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Quantité</span>
+                    <span>{order._quantity ?? "..."} livre(s)</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Méthode de paiement</span>
+                    <span>
+                      {paymentMethodLabels[order.payment_method] || order.payment_method}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Shipping Address */}
+              <div className="space-y-2 border-t pt-4">
+                <h3 className="font-semibold">Adresse de livraison</h3>
+                <div className="text-sm space-y-1">
+                  <p>{order.customer_name}</p>
+                  <p>{order.shipping_address}</p>
+                  <p>
+                    {order.shipping_postal_code} {order.shipping_city}
+                  </p>
+                  <p>{order.shipping_country}</p>
+                </div>
               </div>
             </CardContent>
           </Card>

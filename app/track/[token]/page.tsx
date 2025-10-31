@@ -87,6 +87,9 @@ export default async function TrackOrderPage({ params }: { params: { token: stri
   if (!rawResult || rawResult.success !== true || !("order" in rawResult)) return notFound()
   const order = (rawResult as { success: true; order: any }).order
 
+  // Récupère la quantité dans order_items via order.id
+  const quantity = order?.id ? await getOrderQuantity(order.id) : 1
+
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-3xl mx-auto">
@@ -218,7 +221,7 @@ export default async function TrackOrderPage({ params }: { params: { token: stri
               <div className="space-y-1">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Quantité</span>
-                  <span>{order.quantity} livre(s)</span>
+                  <span>{quantity} livre(s)</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Méthode de paiement</span>
