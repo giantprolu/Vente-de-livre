@@ -9,6 +9,29 @@ const author = "Blissody"
 export default function HomePage() {
   return (
     <div className="bg-white min-h-screen font-inter text-[#1A1A1A] flex flex-col">
+      {/* Navbar */}
+      <nav className="w-full flex items-center justify-between px-6 py-4 border-b border-[#ececec] bg-white">
+        <div className="font-serif text-xl font-bold text-[#2C3E50]">Blissody</div>
+        <div className="flex items-center gap-4">
+          <Link href="/track" className="text-base font-medium text-[#2C3E50] hover:underline">
+            Suivre ma commande
+          </Link>
+          <Link href="/admin">
+            <Button
+              size="sm"
+              className="rounded-full text-base font-semibold"
+              style={{
+                background: "#2C3E50",
+                color: "#fff",
+                transition: "background 0.2s",
+              }}
+            >
+              Admin
+            </Button>
+          </Link>
+        </div>
+      </nav>
+
       {/* Hero */}
       <section className="flex flex-col items-center justify-center px-4 pt-12 pb-10">
         <div className="w-full max-w-md mx-auto mb-8 relative">
