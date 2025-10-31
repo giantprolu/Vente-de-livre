@@ -1,9 +1,27 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Correction : autorise explicitement Vercel (production) et localhost (dev)
+export const runtime = "edge";
 
 export async function POST(request: Request) {
+  // Vérifie l'origine si besoin (optionnel, pour plus de sécurité)
+  // const allowedOrigins = [
+  //   "https://ton-domaine.vercel.app",
+  //   "https://ton-domaine.fr",
+  //   "http://localhost:3000"
+  // ];
+  // const origin = request.headers.get("origin");
+  // if (origin && !allowedOrigins.includes(origin)) {
+  //   return NextResponse.json({ ok: false, error: "Unauthorized origin" }, { status: 401 });
+  // }
+
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    return NextResponse.json({ ok: false, error: "RESEND_API_KEY missing" }, { status: 500 });
+  }
+  const resend = new Resend(resendApiKey);
+
   const { to, subject, html } = await request.json();
   try {
     const data = await resend.emails.send({
@@ -15,6 +33,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, data });
   } catch (error) {
     console.error("Erreur envoi email:", error);
-    return NextResponse.json({ ok: false, error: String(error) }, { status: 500 });
+    // Ajoute le message d'erreur Resend si possible
+    return NextResponse.json({ ok: false, error: String(error) }, { status: 401 });
   }
 }
